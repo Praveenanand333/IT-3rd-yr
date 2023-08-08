@@ -1,61 +1,67 @@
-// client.c
+#include <arpa/inet.h> // inet_addr()
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#include <strings.h> // bzero()
+#include <sys/socket.h>
+#include <unistd.h> // read(), write(), close()
+#define MAX 80
+#define PORT 8080
+#define SA struct sockaddr
+void func(int sockfd)
+{
+	char buff[MAX];
+	int n;
+	for (;;) {
+		bzero(buff, sizeof(buff));
+		printf("Enter the string : ");
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n')
+			;
+		write(sockfd, buff, sizeof(buff));
+		bzero(buff, sizeof(buff));
+		read(sockfd, buff, sizeof(buff));
+		printf("From Server : %s", buff);
+		if ((strncmp(buff, "exit", 4)) == 0) {
+			printf("Client Exit...\n");
+			break;
+		}
+	}
+}
 
-#define PORT 8888
-#define BUFFER_SIZE 1024
+int main()
+{
+	int sockfd, connfd;
+	struct sockaddr_in servaddr, cli;
 
-int main() {
-    int client_fd;
-    struct sockaddr_in server_addr;
-    char buffer[BUFFER_SIZE] = {0};
+	// socket create and verification
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
-    // Create TCP socket
-    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(PORT);
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
+	// connect the client socket to server socket
+	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))
+		!= 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	else
+		printf("connected to the server..\n");
 
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0) {
-        perror("Invalid address/ Address not supported");
-        exit(EXIT_FAILURE);
-    }
+	// function for chat
+	func(sockfd);
 
-    // Connect to the server
-    if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("connection failed");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Connected to the chat server.\n");
-
-    while (1) {
-        // Read input from the user
-        printf("You: ");
-        fgets(buffer, BUFFER_SIZE, stdin);
-
-        // Send the message to the server
-        send(client_fd, buffer, strlen(buffer), 0);
-
-        // Receive the echo from the server
-        int valread = read(client_fd, buffer, BUFFER_SIZE);
-        if (valread <= 0) {
-            printf("Server disconnected.\n");
-            break;
-        }
-
-        // Print the received message from the server
-        printf("Server: %s", buffer);
-    }
-
-    close(client_fd);
-
-    return 0;
+	// close the socket
+	close(sockfd);
 }
