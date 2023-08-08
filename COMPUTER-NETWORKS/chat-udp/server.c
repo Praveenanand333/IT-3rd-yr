@@ -1,5 +1,6 @@
 // Server side implementation of UDP client-server model
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+#include<stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -53,7 +54,7 @@ int n;
 	sendto(sockfd, (const char *)hello, strlen(hello),
 		MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
 			len);
-	std::cout<<"Hello message sent."<<std::endl;
+	printf("Hello message sent.");
 	
 	return 0;
 }
