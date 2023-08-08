@@ -1,74 +1,95 @@
-// server.c
 #include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h> // read(), write(), close()
+#define MAX 80
+#define PORT 8080
+#define SA struct sockaddr
 
-#define PORT 8888
-#define BUFFER_SIZE 1024
+// Function designed for chat between client and server.
+void func(int connfd)
+{
+	char buff[MAX];
+	int n;
+	// infinite loop for chat
+	for (;;) {
+		bzero(buff, MAX);
 
-int main() {
-    int server_fd, new_socket, valread;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char buffer[BUFFER_SIZE] = {0};
+		// read the message from client and copy it in buffer
+		read(connfd, buff, sizeof(buff));
+		// print buffer which contains the client contents
+		printf("From client: %s\t To client : ", buff);
+		bzero(buff, MAX);
+		n = 0;
+		// copy server message in the buffer
+		while ((buff[n++] = getchar()) != '\n')
+			;
 
-    // Create TCP socket
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
+		// and send that buffer to client
+		write(connfd, buff, sizeof(buff));
 
-    // Set socket options
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
+		// if msg contains "Exit" then server exit and chat ended.
+		if (strncmp("exit", buff, 4) == 0) {
+			printf("Server Exit...\n");
+			break;
+		}
+	}
+}
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+// Driver function
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
 
-    // Bind the socket to a specific IP and port
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
+	// socket create and verification
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
-    // Listen for incoming connections
-    if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
 
-    printf("Chat server is listening on port %d...\n", PORT);
+	// Binding newly created socket to given IP and verification
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully binded..\n");
 
-    // Accept a new client connection
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
+	// Now server is ready to listen and verification
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	else
+		printf("Server listening..\n");
+	len = sizeof(cli);
 
-    printf("Client connected.\n");
+	// Accept the data packet from client and verification
+	connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+	else
+		printf("server accept the client...\n");
 
-    while (1) {
-        // Read data from the client
-        valread = read(new_socket, buffer, BUFFER_SIZE);
-        if (valread <= 0) {
-            printf("Client disconnected.\n");
-            break;
-        }
+	// Function for chatting between client and server
+	func(connfd);
 
-        // Print the received message from the client
-        printf("Received: %s", buffer);
-
-        // Echo the data back to the client
-        send(new_socket, buffer, valread, 0);
-    }
-
-    close(new_socket);
-
-    return 0;
+	// After chatting close the socket
+	close(sockfd);
 }
