@@ -15,42 +15,39 @@ int main() {
     const char *domain;
     int found = 0;
 
-    for (int i = 0; i < NUM_SERVERS; i++) {
+    for (int i = 0; i < 1; i++) {
         int client_socket;
         struct sockaddr_in server_addr;
 
-        // Create socket
         client_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (client_socket == -1) {
             perror("Socket creation failed");
             exit(1);
         }
 
-        // Initialize server address struct
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(SERVER_PORTS[i]);
         server_addr.sin_addr.s_addr = inet_addr(SERVER_IPS[i]);
 
-        // Connect to the server
+
         if (connect(client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
             perror("Connection failed");
-            continue; // Try the next server
+            continue; 
         }
 
-        // Read domain from user input
+
         printf("Enter domain to lookup IP: ");
         scanf("%s", buffer);
 
-        // Send the domain to the server
+
         send(client_socket, buffer, strlen(buffer), 0);
 
-        // Receive and print the IP from the server
         recv(client_socket, buffer, BUFFER_SIZE, 0);
-        printf("Server %d response: %s\n", i + 1, buffer);
+        printf("Servers  response: %s\n", buffer);
 
         if (strcmp(buffer, "Not Found") != 0) {
             found = 1;
-            break; // Exit loop if domain is found
+            break;
         }
 
         close(client_socket);
