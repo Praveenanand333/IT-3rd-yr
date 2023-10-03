@@ -12,7 +12,9 @@ In this section, you will find programs related to computer networks, aimed at e
 
 This section focuses on web technologies using Java, including the development of simple Java programs with object-oriented concepts, programming using files and threads for concurrent operations, designing attractive GUI using frameworks, creating dynamic web pages using CSS, JavaScript, and AJAX, and developing mobile-based web applications in a cloud environment.
 
+### 3. Computer Graphics
 
+The Computer Graphics section covers topics related to computer graphics, including OpenGL, line and circle drawing algorithms, clipping algorithms, and graphics programming. You'll find programs and projects that explore these concepts and help you develop graphics applications.
 
 ## How to Use this Repository
 
