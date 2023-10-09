@@ -22,8 +22,8 @@ TCP
         server addr option setting
         bind
         listen
-        {accept
-        recv
+        accept
+        {recv
         send}
 
 Necessary header files:
