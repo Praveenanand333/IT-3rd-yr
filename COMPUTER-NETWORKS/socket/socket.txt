@@ -49,7 +49,8 @@ Syntax:
     listen(server_socket, 5);
     socklen_t addr_size = sizeof(client_addr);
     client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size);
-
+    memset(rbuf, '\0', BUFFER_SIZE);
+    memset(sbuf, '\0', BUFFER_SIZE);  
 
 
 
