@@ -42,17 +42,13 @@ int main() {
     }
 
     printf("Server listening on port %d...\n", PORT);
-
-    while (1) {
-        // Accept a new connection
         if ((new_socket = accept(server_fd, (struct sockaddr*)&client_addr, (socklen_t*)&addrlen)) < 0) {
             perror("Accept failed");
             exit(EXIT_FAILURE);
         }
 
         printf("Connection accepted from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
-        // Process the HTTP request and send a response
+    while (1) {
         char request_buffer[4096];
         ssize_t bytes_received = recv(new_socket, request_buffer, sizeof(request_buffer), 0);
 
