@@ -16,9 +16,11 @@ int main(){
     while(1){
     printf("Enter the message:");
     scanf("%s",sbuf);
-    send(client_socket,sbuf,BUFFER_SIZE,0);
+    send(client_socket,sbuf,strlen(sbuf),0);
     recv(client_socket,rbuf,BUFFER_SIZE,0);
-    printf("servers response:%s",rbuf);
+    printf("servers response:%s\n",rbuf);
+    memset(rbuf, '\0', BUFFER_SIZE);
+    memset(sbuf, '\0', BUFFER_SIZE);
     }
     close(client_socket);
     return 0;
