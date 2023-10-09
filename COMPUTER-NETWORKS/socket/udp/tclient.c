@@ -6,8 +6,8 @@
 #define BUFFER_SIZE 1024
 int main(){
     char rbuf[BUFFER_SIZE],sbuf[BUFFER_SIZE];
-    int client_socket;
-    client_socket=socket(AF_INET,SOCK_DGRAM,0);
+    int server_socket;
+    server_socket=socket(AF_INET,SOCK_DGRAM,0);
     struct sockaddr_in serv_addr;
     serv_addr.sin_family=AF_INET;
     serv_addr.sin_port=htons(2000);
@@ -16,10 +16,10 @@ int main(){
         printf("Enter the message:");
         scanf("%s",sbuf);
         socklen_t addr_len=sizeof(serv_addr);
-        sendto(client_socket,sbuf,BUFFER_SIZE,0,(struct sockaddr *)&serv_addr,addr_len);
-       recvfrom(client_socket, rbuf, BUFFER_SIZE, 0, (struct sockaddr *)&serv_addr, &addr_len);
-       printf("Servers message:%s",rbuf);
+        sendto(server_socket,sbuf,sizeof(sbuf),0,(struct sockaddr *)&serv_addr,addr_len);
+       recvfrom(server_socket, rbuf, BUFFER_SIZE, 0, (struct sockaddr *)&serv_addr, &addr_len);
+       printf("Servers message:%s\n",rbuf);
     }
-    close(client_socket);
+    close(server_socket);
     return 0;
 }
