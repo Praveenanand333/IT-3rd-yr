@@ -10,11 +10,33 @@ import java.util.List;
 
 @ManagedBean(name = "registrationBean")
 @RequestScoped
-public class RegistrationBean2 {
+public class RegistrationBean {
 
-    // ... (existing methods and properties)
+    private String username;
+    private String password;
+    private String email;
+    private String message;
+    private List<User> allUsers; // New property to store all users
+
+    // Existing getters and setters
 
     public List<User> getAllUsers() {
+        return allUsers;
+    }
+
+    public String register() {
+        // Existing registration code
+
+        // Fetch all users after registration
+        allUsers = fetchAllUsers();
+
+        // Continue with existing logic
+
+        return "success";
+    }
+
+    // New method to fetch all users
+    private List<User> fetchAllUsers() {
         List<User> userList = new ArrayList<>();
 
         try {
@@ -39,6 +61,4 @@ public class RegistrationBean2 {
 
         return userList;
     }
-
-    // ... (existing methods and properties)
 }
