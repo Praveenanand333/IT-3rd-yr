@@ -1,34 +1,45 @@
+package Servlets;
 import java.io.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
 import java.sql.*;
+@WebServlet("/Formhandler")
+public class Formhandler extends HttpServlet {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/test";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "";
 
-public class SampleServlet extends HttpServlet {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/your_database_name";
-    private static final String DB_USER = "your_username";
-    private static final String DB_PASSWORD = "your_password";
-
-    public void doPost(HttpServletRequest request, HttpServletResponse response)
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
 
-        String name = request.getParameter("name");
-        String email = request.getParameter("email");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-            String query = "INSERT INTO users (name, email) VALUES (?, ?)";
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, email);
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
             preparedStatement.executeUpdate();
 
             out.println("<h1>Registration Successful</h1>");
-            out.println("<p>Name: " + name + "</p>");
-            out.println("<p>Email: " + email + "</p>");
+            String query2="select * from users";
+            PreparedStatement ps=connection.prepareStatement(query2);
+            ResultSet rs=ps.executeQuery();
+            while(rs.next()) {
+            String uname=rs.getString("username");
+            String pass=rs.getString("password");
+            out.println(uname);
+            out.println(pass);
+            	
+            }
+            
 
             connection.close();
         } catch (Exception e) {
