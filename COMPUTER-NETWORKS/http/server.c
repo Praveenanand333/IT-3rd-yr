@@ -1,53 +1,65 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+//http server
 
-#define PORT 8080
-#define OBJECT_FILE "objects.txt"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<unistd.h>
+#include<arpa/inet.h>
 
-void send_object(FILE *fp, int sockfd) {
-    char buff[1024];
-    int n;
+#define PORT 8081
+#define BUFFER_SIZE 1024
 
-    while ((n = fread(buff, 1, sizeof(buff), fp)) > 0) {
-        if (send(sockfd, buff, n, 0) < 0) {
-            perror("Error sending file");
-            exit(EXIT_FAILURE);
-        }
+void send_response(int cli_sock,int status,const char *content){
+    char sbuf[BUFFER_SIZE];
+    memset(sbuf,0,sizeof(sbuf));
+    const char *statusmsg="OK";
+    if(status==404){
+        statusmsg="Not Found";
     }
+    snprintf(sbuf,sizeof(sbuf),
+        "HTTP/1.1 %d %s\r\n"
+        "Content-Length: %zu\r\n"
+        "Content-Type: text/plain\r\n\r\n%s",
+        status,statusmsg,strlen(content),content);
+    send(cli_sock,sbuf,strlen(sbuf),0);
 }
 
-int main() {
-    int server_fd, new_socket;
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
+int main(){
+    int serv_sock,cli_sock;
+    struct sockaddr_in serv_addr,cli_addr;
+    socklen_t addrlen=sizeof(cli_addr);
+    char rbuf[BUFFER_SIZE];
+    serv_sock=socket(AF_INET,SOCK_STREAM,0);
+    serv_addr.sin_family=AF_INET;
+    serv_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
+    serv_addr.sin_port=htons(PORT);
+    bind(serv_sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
+    listen(serv_sock,5);
+    printf("Server listening on port %d\n",PORT);
+    while(1){
+        cli_sock=accept(serv_sock,(struct sockaddr *)&cli_addr,&addrlen);
+        memset(rbuf,0,sizeof(rbuf));
+        recv(cli_sock,rbuf,sizeof(rbuf),0);
+        printf("Received message: \n%s\n",rbuf);
+        char file[BUFFER_SIZE];
+        if(sscanf(rbuf,"GET /%s HTTP/1.1",file)==1){
+            FILE *f=fopen(file,"r");
+            if(f!=NULL){
+                char content[BUFFER_SIZE];
+                fread(content,1,sizeof(content),f);
+                fclose(f);
 
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) exit(EXIT_FAILURE);
-    
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
-
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) exit(EXIT_FAILURE);
-
-    if (listen(server_fd, 3) < 0) exit(EXIT_FAILURE);
-
-    printf("Server listening on port %d...\n", PORT);
-
-    while (1) {
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) exit(EXIT_FAILURE);
-
-        FILE *fp = fopen(OBJECT_FILE, "rb");
-        if (fp == NULL) exit(EXIT_FAILURE);
-
-        send_object(fp, new_socket);
-
-        fclose(fp);
-        close(new_socket);
-        printf("Connection closed\n");
+                send_response(cli_sock,200,content);
+            }
+            else{
+                send_response(cli_sock,404,"File not found");
+            }
+        }
+        else{
+            send_response(cli_sock,400,"Bad Request");
+        }
+        close(cli_sock);
     }
-
+    close(serv_sock);
     return 0;
 }
