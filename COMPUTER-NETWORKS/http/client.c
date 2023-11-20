@@ -1,39 +1,32 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+//http client
 
-#define PORT 8080
-#define SERVER_IP "127.0.0.1"
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<unistd.h>
+#include<arpa/inet.h>
 
-void receive_objects(int sockfd) {
-    char buff[1024];
-    int n;
+#define PORT 8081
+#define BUFFER_SIZE 1024
 
-    while ((n = recv(sockfd, buff, sizeof(buff), 0)) > 0) {
-        fwrite(buff, 1, n, stdout);
-    }
-}
-
-int main() {
-    int sockfd;
-    struct sockaddr_in server_addr;
-
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(EXIT_FAILURE);
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
-
-    if (inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr) <= 0) exit(EXIT_FAILURE);
-
-    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) exit(EXIT_FAILURE);
-
-    printf("Connected to server at %s:%d\n", SERVER_IP, PORT);
-
-    receive_objects(sockfd);
-
-    close(sockfd);
-
+int main(){
+    int cli_sock;
+    struct sockaddr_in serv_addr;
+    char sbuf[BUFFER_SIZE],rbuf[BUFFER_SIZE];
+    memset(rbuf,0,sizeof(rbuf));
+    cli_sock=socket(AF_INET,SOCK_STREAM,0);
+    serv_addr.sin_family=AF_INET;
+    serv_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
+    serv_addr.sin_port=htons(PORT);
+    connect(cli_sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
+    char filename[BUFFER_SIZE];
+    printf("Enter filename to search: ");
+    fgets(filename,BUFFER_SIZE,stdin);
+    strtok(filename,"\n");
+    snprintf(sbuf,sizeof(sbuf),"GET /%s HTTP/1.1\r\nHOST: localhost\r\n\r\n",filename);
+    send(cli_sock,sbuf,BUFFER_SIZE,0);
+    recv(cli_sock,rbuf,BUFFER_SIZE,0);
+    printf("Received message: \n%s\n",rbuf);
+    close(cli_sock);
     return 0;
 }
