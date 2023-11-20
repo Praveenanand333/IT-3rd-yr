@@ -53,4 +53,42 @@ Syntax:
     memset(sbuf, '\0', BUFFER_SIZE);  
 
 
+File operations:
+    FILE *file = fopen("received_file.txt", "wb");
+    fwrite(buffer, 1, bytesRead, file);
 
+void receive_objects(int sockfd) {
+    char buff[1024];
+    int n;
+    while ((n = recv(sockfd, buff, sizeof(buff), 0)) > 0) {
+        fwrite(buff, 1, n, stdout);
+    }
+}
+
+void send_object(FILE *fp, int sockfd) {
+    char buff[1024];
+    int n;
+    while ((n = fread(buff, 1, sizeof(buff), fp)) > 0) {
+        if (send(sockfd, buff, n, 0) < 0) {
+            perror("Error sending file");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+DNS-scan 
+
+  while (fscanf(fp, "%s", a) == 1) {
+            if (strcmp(a, rbuf) == 0) {
+                fscanf(fp, "%s", sbuf);
+                break;
+            }
+        }
+
+
+sprintf(auth_command, "AUTH: %s %s\r\n", username, password);
+fgets(password, sizeof(password), stdin);
+(strstr(buffer, "HELO") != NULL)
+strcmp(str1,str2)
+
+snprintf(sbuf,sizeof(sbuf),"GET /%s HTTP/1.1\r\nHOST: localhost\r\n\r\n",filename);
