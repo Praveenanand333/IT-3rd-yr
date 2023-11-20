@@ -15,7 +15,8 @@ int main(){
     connect(server_socket,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
     while(1){
     printf("Enter the message:");
-    scanf("%s",sbuf);
+   fgets(sbuf, BUFFER_SIZE, stdin);
+   sbuf[strcspn(sbuf, "\n")] = '\0';
     send(server_socket,sbuf,strlen(sbuf),0);
     recv(server_socket,rbuf,BUFFER_SIZE,0);
     printf("servers response:%s\n",rbuf);
