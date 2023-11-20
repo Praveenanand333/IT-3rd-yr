@@ -16,14 +16,15 @@ void send_file(const char *filename, int sockfd) {
 
     char buffer[1024];
     size_t bytesRead;
-
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-        if (send(sockfd, buffer, bytesRead, 0) < 0) {
-            perror("Error sending file");
-            fclose(file);
-            exit(EXIT_FAILURE);
-        }
-    }
+    bytesRead = fread(buffer, 1, sizeof(buffer), file);
+    send(sockfd, buffer, bytesRead, 0);
+    // while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+    //     if (send(sockfd, buffer, bytesRead, 0) < 0) {
+    //         perror("Error sending file");
+    //         fclose(file);
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
 
     fclose(file);
 }
@@ -55,8 +56,6 @@ int main() {
             close(new_socket);
             continue;
         }
-        
-
         printf("File request received: %s\n", filename);
  char cwd[1024];
  getcwd(cwd, sizeof(cwd));
@@ -65,6 +64,5 @@ int main() {
 
         close(new_socket);
     }
-
     return 0;
 }
