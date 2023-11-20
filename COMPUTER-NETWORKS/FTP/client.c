@@ -17,10 +17,11 @@ void receive_file(const char *filename, int sockfd) {
 
     char buffer[1024];
     int bytesRead;
-
-    while ((bytesRead = recv(sockfd, buffer, sizeof(buffer), 0)) > 0) {
-        fwrite(buffer, 1, bytesRead, file);
-    }
+    bytesRead = recv(sockfd, buffer, sizeof(buffer), 0);
+    fwrite(buffer, 1, bytesRead, file);
+    // while ((bytesRead = recv(sockfd, buffer, sizeof(buffer), 0)) > 0) {
+    //     fwrite(buffer, 1, bytesRead, file);
+    // }
 
     fclose(file);
 }
@@ -42,18 +43,10 @@ int main() {
     memset(filename,'\0',MAX_FILENAME_SIZE);
     printf("Enter the filename to request: ");
     scanf("%s",filename);
-    // fgets(filename, sizeof(filename), stdin);
-    // filename[strcspn(filename, "\n")] = '\0';  // Remove newline character
-
     send(sockfd, filename, strlen(filename), 0);
-
     printf("Requesting file: %s\n", filename);
-
     receive_file(filename, sockfd);
-
     close(sockfd);
-
     printf("File received successfully.\n");
-
     return 0;
 }
