@@ -15,13 +15,14 @@ int main(){
     bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
     listen(server_socket, 5);
     printf("server listening...\n");
-                socklen_t addr_size = sizeof(client_addr);
-        client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size);
+    socklen_t addr_size = sizeof(client_addr);
+    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size);
       while (1) {
-        recv(client_socket, rbuf, BUFFER_SIZE, 0);
+        recv(client_socket, rbuf , BUFFER_SIZE, 0);
         printf("\nReceived message: %s\n", rbuf);
         printf("Enter the message:");
-        scanf("%s",sbuf);
+        fgets(sbuf, BUFFER_SIZE, stdin);
+        sbuf[strcspn(sbuf, "\n")] = '\0';
         send(client_socket, sbuf, strlen(sbuf), 0);
         printf("Sent Response : %s\n", sbuf);
         memset(rbuf, '\0', BUFFER_SIZE);
